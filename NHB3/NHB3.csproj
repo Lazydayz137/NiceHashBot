@@ -96,6 +96,24 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Core\Interfaces\IApiClient.cs" />
+    <Compile Include="Core\Interfaces\IProfitabilityCalculator.cs" />
+    <Compile Include="Core\Interfaces\IStrategy.cs" />
+    <Compile Include="Core\Models\MarketData.cs" />
+    <Compile Include="Core\Models\ProfitabilityReport.cs" />
+    <Compile Include="Core\Models\StrategyConfig.cs" />
+    <Compile Include="Core\Services\Logger.cs" />
+    <Compile Include="Core\Services\ConfigManager.cs" />
+    <Compile Include="Utils\RateLimiter.cs" />
+    <Compile Include="Utils\RetryPolicy.cs" />
+    <Compile Include="NiceHash\NiceHashClient.cs" />
+    <Compile Include="NiceHash\NiceHashService.cs" />
+    <Compile Include="NiceHash\Models\NiceHashModels.cs" />
+    <Compile Include="MiningRigRentals\MrrClient.cs" />
+    <Compile Include="Profitability\WhatToMineClient.cs" />
+    <Compile Include="Profitability\ProfitabilityEngine.cs" />
+    <Compile Include="Strategies\BaseStrategy.cs" />
+    <Compile Include="Strategies\MarketMakerStrategy.cs" />
     <EmbeddedResource Include="ApiForm.resx">
       <DependentUpon>ApiForm.cs</DependentUpon>
     </EmbeddedResource>
