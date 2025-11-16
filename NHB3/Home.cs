@@ -25,9 +25,21 @@ namespace NHB3
 
         System.Threading.Timer timer;
 
+        // Modern UI colors
+        private Color PrimaryColor = Color.FromArgb(41, 128, 185);      // Blue
+        private Color PrimaryDarkColor = Color.FromArgb(30, 96, 139);   // Darker Blue
+        private Color AccentColor = Color.FromArgb(39, 174, 96);        // Green
+        private Color DangerColor = Color.FromArgb(231, 76, 60);        // Red
+        private Color BackgroundColor = Color.FromArgb(236, 240, 241);  // Light Gray
+        private Color CardColor = Color.White;
+        private Color TextPrimaryColor = Color.FromArgb(44, 62, 80);    // Dark Gray
+        private Color TextSecondaryColor = Color.FromArgb(127, 140, 141); // Medium Gray
+
         public Home()
         {
             InitializeComponent();
+            ApplyModernStyling();
+
             ac = new ApiConnect();
 
             ApiSettings saved = ac.readSettings();
@@ -49,24 +61,101 @@ namespace NHB3
                     TimeSpan.Zero,
                     TimeSpan.FromSeconds(60));
             }
+
+            UpdateMetricsCards();
+        }
+
+        private void ApplyModernStyling()
+        {
+            // Form styling
+            this.BackColor = BackgroundColor;
+            this.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular);
+
+            // Menu strip modern styling
+            menuStrip1.BackColor = PrimaryColor;
+            menuStrip1.ForeColor = Color.White;
+            menuStrip1.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+            menuStrip1.Renderer = new ModernMenuRenderer();
+
+            // Status strip styling
+            statusStrip1.BackColor = PrimaryDarkColor;
+            statusStrip1.ForeColor = Color.White;
+            statusStrip1.Font = new Font("Segoe UI", 9F);
+
+            // DataGridView modern styling
+            dataGridView1.BorderStyle = BorderStyle.None;
+            dataGridView1.BackgroundColor = CardColor;
+            dataGridView1.GridColor = Color.FromArgb(230, 230, 230);
+            dataGridView1.DefaultCellStyle.BackColor = CardColor;
+            dataGridView1.DefaultCellStyle.ForeColor = TextPrimaryColor;
+            dataGridView1.DefaultCellStyle.SelectionBackColor = PrimaryColor;
+            dataGridView1.DefaultCellStyle.SelectionForeColor = Color.White;
+            dataGridView1.DefaultCellStyle.Font = new Font("Segoe UI", 9F);
+            dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = PrimaryDarkColor;
+            dataGridView1.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
+            dataGridView1.ColumnHeadersDefaultCellStyle.SelectionBackColor = PrimaryDarkColor;
+            dataGridView1.ColumnHeadersHeight = 35;
+            dataGridView1.EnableHeadersVisualStyles = false;
+            dataGridView1.RowTemplate.Height = 30;
+            dataGridView1.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(250, 250, 250);
+        }
+
+        private void UpdateMetricsCards()
+        {
+            // Update metrics panel values if they exist
+            if (lblTotalOrders != null && orders != null)
+            {
+                lblTotalOrders.Text = orders.Count.ToString();
+            }
+
+            if (lblActiveRigs != null && orders != null)
+            {
+                int activeRigs = 0;
+                foreach (JObject order in orders)
+                {
+                    activeRigs += int.Parse("" + order["rigsCount"]);
+                }
+                lblActiveRigs.Text = activeRigs.ToString();
+            }
+
+            if (lblTotalSpeed != null && orders != null)
+            {
+                decimal totalSpeed = 0;
+                foreach (JObject order in orders)
+                {
+                    totalSpeed += decimal.Parse("" + order["acceptedCurrentSpeed"], CultureInfo.InvariantCulture);
+                }
+                lblTotalSpeed.Text = totalSpeed.ToString("F2");
+            }
         }
 
         private void api_Click(object sender, EventArgs e)
         {
             ApiForm af = new ApiForm(ac);
             af.FormBorderStyle = FormBorderStyle.FixedSingle;
+            af.ShowDialog();
         }
 
         private void pools_Click(object sender, EventArgs e)
         {
             PoolsForm pf = new PoolsForm(ac);
             pf.FormBorderStyle = FormBorderStyle.FixedSingle;
+            pf.ShowDialog();
         }
 
         private void botToolStripMenuItem_Click(object sender, EventArgs e)
         {
             BotForm bf = new BotForm();
             bf.FormBorderStyle = FormBorderStyle.FixedSingle;
+            bf.ShowDialog();
+        }
+
+        private void arbitrageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LaunchArbitrageDashboard();
         }
 
         private void newOrderToolStripMenuItem_Click(object sender, EventArgs e)
@@ -74,6 +163,7 @@ namespace NHB3
             OrderForm of = new OrderForm(ac);
             of.FormBorderStyle = FormBorderStyle.FixedSingle;
             of.FormClosed += new FormClosedEventHandler(f_FormClosed); //refresh orders
+            of.ShowDialog();
         }
 
         private void ordersToolStripMenuItem_Click(object sender, EventArgs e)
@@ -92,10 +182,21 @@ namespace NHB3
                 JObject balance = ac.getBalance(currency);
                 if (balance != null)
                 {
-                    this.toolStripStatusLabel2.Text = "Balance: " + balance["available"] + " " + currency;
+                    string balanceText = "Balance: " + balance["available"] + " " + currency;
+                    this.toolStripStatusLabel2.Text = balanceText;
+
+                    // Update balance card if it exists
+                    if (lblBalance != null)
+                    {
+                        lblBalance.Text = balance["available"] + " " + currency;
+                    }
                 }
             } else {
                 this.toolStripStatusLabel2.Text = "Balance: N/A " + currency;
+                if (lblBalance != null)
+                {
+                    lblBalance.Text = "N/A";
+                }
             }
         }
 
@@ -118,7 +219,7 @@ namespace NHB3
                     cleanOrder.Add("amount", "" + order["amount"]);
                     cleanOrder.Add("payedAmount", "" + order["payedAmount"]);
                     cleanOrder.Add("availableAmount", "" + order["availableAmount"]);
-                    
+
                     float payed = float.Parse("" + order["payedAmount"], CultureInfo.InvariantCulture);
                     float available = float.Parse("" + order["availableAmount"], CultureInfo.InvariantCulture);
                     float spent_factor = payed / available * 100;
@@ -137,10 +238,12 @@ namespace NHB3
                     dataGridView1.Invoke((MethodInvoker)delegate
                     {
                         dataGridView1.DataSource = cleanOrders;
+                        UpdateMetricsCards();
                     });
                 } else
                 {
                     dataGridView1.DataSource = cleanOrders;
+                    UpdateMetricsCards();
                 }
 
                 dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -160,15 +263,29 @@ namespace NHB3
 
         private void autoPilotOffToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            toolStripStatusLabel1.Text = "Stopped";
+            toolStripStatusLabel1.Text = "Bot: Stopped";
+            toolStripStatusLabel1.ForeColor = DangerColor;
             botRunning = false;
+
+            if (lblBotStatus != null)
+            {
+                lblBotStatus.Text = "Stopped";
+                lblBotStatus.ForeColor = DangerColor;
+            }
         }
 
         private void autoPilotONToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            toolStripStatusLabel1.Text = "Idle";
+            toolStripStatusLabel1.Text = "Bot: Idle";
+            toolStripStatusLabel1.ForeColor = AccentColor;
             botRunning = true;
             runBot();
+
+            if (lblBotStatus != null)
+            {
+                lblBotStatus.Text = "Running";
+                lblBotStatus.ForeColor = AccentColor;
+            }
         }
 
         private void editSelectedOrderToolStripMenuItem_Click(object sender, EventArgs e)
@@ -179,6 +296,7 @@ namespace NHB3
                 of.FormBorderStyle = FormBorderStyle.FixedSingle;
                 of.setEditMode((JObject)orders[dataGridView1.SelectedRows[0].Index]);
                 of.FormClosed += new FormClosedEventHandler(f_FormClosed); //refresh orders
+                of.ShowDialog();
             }
         }
 
@@ -186,7 +304,7 @@ namespace NHB3
         {
             refreshOrders(false);
         }
-        
+
         private void runBot() {
             if (!botRunning) {
                 return;
@@ -199,7 +317,8 @@ namespace NHB3
                 return;
             }
 
-            toolStripStatusLabel1.Text = "Working";
+            toolStripStatusLabel1.Text = "Bot: Working";
+            toolStripStatusLabel1.ForeColor = Color.Orange;
 
             BotSettings saved = JsonConvert.DeserializeObject<BotSettings>(File.ReadAllText(@fileName));
             Console.ForegroundColor = ConsoleColor.Green;
@@ -280,7 +399,8 @@ namespace NHB3
                     }
                 }
             }
-            toolStripStatusLabel1.Text = "Idle";
+            toolStripStatusLabel1.Text = "Bot: Idle";
+            toolStripStatusLabel1.ForeColor = AccentColor;
         }
 
         private Dictionary<string, float> getOrderPriceRangesForAlgoAndMarket(string oa, string om)
@@ -306,7 +426,7 @@ namespace NHB3
                     {
                         prices[order_price] = prices[order_price] + order_speed;
                     }
-                    else 
+                    else
                     {
                         prices[order_price] = order_speed;
                     }
@@ -314,5 +434,36 @@ namespace NHB3
             }
             return prices;
         }
+    }
+
+    // Modern menu renderer for flat design
+    public class ModernMenuRenderer : ToolStripProfessionalRenderer
+    {
+        public ModernMenuRenderer() : base(new ModernColorTable()) { }
+
+        protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+        {
+            if (e.Item.Selected)
+            {
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(52, 152, 219)), e.Item.ContentRectangle);
+            }
+            else
+            {
+                base.OnRenderMenuItemBackground(e);
+            }
+        }
+    }
+
+    public class ModernColorTable : ProfessionalColorTable
+    {
+        public override Color MenuItemSelected => Color.FromArgb(52, 152, 219);
+        public override Color MenuItemSelectedGradientBegin => Color.FromArgb(52, 152, 219);
+        public override Color MenuItemSelectedGradientEnd => Color.FromArgb(52, 152, 219);
+        public override Color MenuItemPressedGradientBegin => Color.FromArgb(30, 96, 139);
+        public override Color MenuItemPressedGradientEnd => Color.FromArgb(30, 96, 139);
+        public override Color MenuItemBorder => Color.Transparent;
+        public override Color ImageMarginGradientBegin => Color.FromArgb(41, 128, 185);
+        public override Color ImageMarginGradientMiddle => Color.FromArgb(41, 128, 185);
+        public override Color ImageMarginGradientEnd => Color.FromArgb(41, 128, 185);
     }
 }
