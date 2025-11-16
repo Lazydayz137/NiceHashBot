@@ -118,8 +118,16 @@
     <Compile Include="Profitability\ProfitabilityEngine.cs" />
     <Compile Include="Profitability\RealArbitrageCalculator.cs" />
     <Compile Include="Profitability\RealArbitrageCalculator_MRR.cs" />
+    <Compile Include="Profitability\AutoExecutionEngine.cs" />
+    <Compile Include="Profitability\ArbitrageTracker.cs" />
     <Compile Include="Strategies\BaseStrategy.cs" />
     <Compile Include="Strategies\MarketMakerStrategy.cs" />
+    <Compile Include="ArbitrageDashboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Home_ArbitrageIntegration.cs">
+      <DependentUpon>Home.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="ApiForm.resx">
       <DependentUpon>ApiForm.cs</DependentUpon>
     </EmbeddedResource>
