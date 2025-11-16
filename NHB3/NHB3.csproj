@@ -104,8 +104,11 @@
     <Compile Include="Core\Models\StrategyConfig.cs" />
     <Compile Include="Core\Services\Logger.cs" />
     <Compile Include="Core\Services\ConfigManager.cs" />
+    <Compile Include="Core\Services\SystemHealthCheck.cs" />
     <Compile Include="Utils\RateLimiter.cs" />
     <Compile Include="Utils\RetryPolicy.cs" />
+    <Compile Include="Utils\HashCalculator.cs" />
+    <Compile Include="Utils\DataValidator.cs" />
     <Compile Include="NiceHash\NiceHashClient.cs" />
     <Compile Include="NiceHash\NiceHashService.cs" />
     <Compile Include="NiceHash\Models\NiceHashModels.cs" />
@@ -124,6 +127,9 @@
     <Compile Include="Strategies\MarketMakerStrategy.cs" />
     <Compile Include="ArbitrageDashboard.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ArbitrageDashboard.Designer.cs">
+      <DependentUpon>ArbitrageDashboard.cs</DependentUpon>
     </Compile>
     <Compile Include="Home_ArbitrageIntegration.cs">
       <DependentUpon>Home.cs</DependentUpon>

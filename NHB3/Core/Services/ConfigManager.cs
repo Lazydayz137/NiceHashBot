@@ -125,8 +125,13 @@ namespace NHB3.Core.Services
         public GeneralSettings General { get; set; } = new GeneralSettings();
         public NiceHashSettings NiceHash { get; set; } = new NiceHashSettings();
         public MrrSettings MiningRigRentals { get; set; } = new MrrSettings();
+        public MiningDutchSettings MiningDutch { get; set; } = new MiningDutchSettings();
+        public ArbitrageSettings Arbitrage { get; set; } = new ArbitrageSettings();
         public ProfitabilitySettings Profitability { get; set; } = new ProfitabilitySettings();
         public RiskManagementSettings RiskManagement { get; set; } = new RiskManagementSettings();
+        public LoggingSettings Logging { get; set; } = new LoggingSettings();
+        public PerformanceSettings Performance { get; set; } = new PerformanceSettings();
+        public NotificationSettings Notifications { get; set; } = new NotificationSettings();
         public List<StrategyConfig> Strategies { get; set; } = new List<StrategyConfig>();
 
         // Legacy settings for backward compatibility
@@ -153,11 +158,58 @@ namespace NHB3.Core.Services
 
     public class MrrSettings
     {
-        public bool Enabled { get; set; } = false;
+        public bool Enabled { get; set; } = true;
         public bool AutoRent { get; set; } = false;
         public decimal MaxRentalCost { get; set; } = 0.01m;
         public List<string> PreferredAlgorithms { get; set; } = new List<string>();
-        public string RedirectToPool { get; set; } = "nicehash";
+        public string RedirectToPool { get; set; } = "mining-dutch";
+        public int DefaultDuration { get; set; } = 24;
+        public decimal MaxPricePerMH { get; set; } = 0.00001m;
+    }
+
+    public class MiningDutchSettings
+    {
+        public string BTCAddress { get; set; } = "";
+        public string WorkerPrefix { get; set; } = "NHB3";
+    }
+
+    public class ArbitrageSettings
+    {
+        public int ScanIntervalMinutes { get; set; } = 5;
+        public decimal DefaultHashrateMultiplier { get; set; } = 1000m;
+        public int MinimumOpportunities { get; set; } = 1;
+        public string PreferredMetric { get; set; } = "Actual24h";
+        public List<string> EnabledPaths { get; set; } = new List<string>
+        {
+            "NiceHash→MiningDutch",
+            "MRR→MiningDutch",
+            "MRR→NiceHash"
+        };
+    }
+
+    public class LoggingSettings
+    {
+        public string LogLevel { get; set; } = "Info";
+        public bool LogToFile { get; set; } = true;
+        public bool LogToConsole { get; set; } = true;
+        public int RetentionDays { get; set; } = 30;
+    }
+
+    public class PerformanceSettings
+    {
+        public int CacheDurationMinutes { get; set; } = 2;
+        public int RateLimitPerMinute { get; set; } = 100;
+        public int MaxRetryAttempts { get; set; } = 3;
+        public int RetryDelaySeconds { get; set; } = 2;
+    }
+
+    public class NotificationSettings
+    {
+        public bool Enabled { get; set; } = false;
+        public string WebhookUrl { get; set; } = "";
+        public bool NotifyOnExecution { get; set; } = true;
+        public bool NotifyOnHighMargin { get; set; } = true;
+        public decimal HighMarginThreshold { get; set; } = 20.0m;
     }
 
     public class ProfitabilitySettings

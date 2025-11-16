@@ -176,15 +176,19 @@ namespace NHB3.Profitability
                 }
 
                 // 2. Create Mining-Dutch pool configuration
-                var btcAddress = _config.MiningRigRentals.RedirectToPool == "nicehash"
-                    ? "YOUR_NH_BTC_ADDRESS" // TODO: Get from config
-                    : "YOUR_BTC_ADDRESS"; // TODO: Get from config
+                if (string.IsNullOrEmpty(_config.MiningDutch.BTCAddress))
+                {
+                    return CreateFailedExecution(opportunity, "Mining-Dutch BTC address not configured in bot.json");
+                }
+
+                var btcAddress = _config.MiningDutch.BTCAddress;
+                var workerPrefix = _config.MiningDutch.WorkerPrefix ?? "NHB3";
 
                 var pool = new MrrPool
                 {
                     Host = $"{mdAlgorithm}.mining-dutch.nl",
                     Port = 3333, // Default port
-                    User = $"{btcAddress}.MRR_Arb",
+                    User = $"{btcAddress}.{workerPrefix}_MRR_Arb",
                     Pass = "c=BTC", // Auto-convert to BTC
                     Notes = $"Arbitrage: MRR→MD ({opportunity.ProfitMargin:F2}% margin)"
                 };
@@ -253,7 +257,14 @@ namespace NHB3.Profitability
                 }
 
                 // 2. Create new pool
-                var btcAddress = "YOUR_BTC_ADDRESS"; // TODO: Get from config
+                if (string.IsNullOrEmpty(_config.MiningDutch.BTCAddress))
+                {
+                    Logger.Instance.Error("Mining-Dutch BTC address not configured in bot.json");
+                    return null;
+                }
+
+                var btcAddress = _config.MiningDutch.BTCAddress;
+                var workerPrefix = _config.MiningDutch.WorkerPrefix ?? "NHB3";
 
                 var newPool = new Pool
                 {
@@ -261,7 +272,7 @@ namespace NHB3.Profitability
                     Algorithm = algorithm,
                     StratumHostname = $"{mdAlgorithm}.mining-dutch.nl",
                     StratumPort = 3333,
-                    Username = $"{btcAddress}.NH_Arb",
+                    Username = $"{btcAddress}.{workerPrefix}_NH_Arb",
                     Password = "c=BTC" // Auto-convert to BTC
                 };
 
