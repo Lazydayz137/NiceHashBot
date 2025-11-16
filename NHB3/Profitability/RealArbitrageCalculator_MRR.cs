@@ -11,17 +11,20 @@ namespace NHB3.Profitability
 {
     /// <summary>
     /// MRR arbitrage extensions for RealArbitrageCalculator
+    /// PROPERLY accounts for MinHours and MaxHours rental constraints
     /// </summary>
     public partial class RealArbitrageCalculator
     {
         /// <summary>
         /// Calculate MRR → Mining-Dutch arbitrage
         /// Rent hash from MRR, point to Mining-Dutch pool
+        /// IMPORTANT: Accounts for minimum rental duration constraints
         /// </summary>
         public async Task<ArbitrageOpportunity> CalculateMrrToMiningDutchAsync(
             string algorithm,
             decimal targetHashrateMh, // Target hashrate in MH
             ProfitabilityType profitType = ProfitabilityType.Actual24h,
+            int desiredDurationHours = 24, // Desired rental duration (default 24h)
             CancellationToken cancellationToken = default)
         {
             if (_mrrService == null)
@@ -39,11 +42,28 @@ namespace NHB3.Profitability
                     return CreateFailedOpportunity(algorithm, "No MRR rigs available");
                 }
 
-                // 2. Calculate MRR rental cost (BTC per day)
-                // MRR price is in BTC/MH/day
-                var mrrCostPerDay = cheapestRig.Price * cheapestRig.Hashrate;
+                // 2. Determine actual rental duration based on constraints
+                decimal actualRentalHours = desiredDurationHours;
 
-                // 3. Get Mining-Dutch revenue
+                // Must rent for at least MinHours
+                if (actualRentalHours < cheapestRig.MinHours)
+                {
+                    actualRentalHours = cheapestRig.MinHours;
+                }
+
+                // Cannot exceed MaxHours
+                if (cheapestRig.MaxHours > 0 && actualRentalHours > cheapestRig.MaxHours)
+                {
+                    // If desired duration exceeds max, use max allowed
+                    actualRentalHours = cheapestRig.MaxHours;
+                }
+
+                // 3. Calculate ACTUAL rental cost for the rental period
+                // MRR price is in BTC/MH/day, so convert to actual rental period
+                decimal mrrCostPerDay = cheapestRig.Price * cheapestRig.Hashrate;
+                decimal mrrActualCost = mrrCostPerDay * (actualRentalHours / 24m);
+
+                // 4. Get Mining-Dutch revenue for the same period
                 var mdAlgorithmName = AlgorithmMapper.ToMiningDutch(algorithm);
                 var mdAlgoStatus = await _miningDutchClient.GetAlgorithmStatusAsync(mdAlgorithmName, cancellationToken);
 
@@ -52,14 +72,29 @@ namespace NHB3.Profitability
                     return CreateFailedOpportunity(algorithm, $"Algorithm '{mdAlgorithmName}' not on Mining-Dutch");
                 }
 
-                var mdRevenuePerDay = _miningDutchClient.CalculateNetProfitability(
+                decimal mdRevenuePerDay = _miningDutchClient.CalculateNetProfitability(
                     mdAlgoStatus,
                     cheapestRig.Hashrate, // Already in MH
                     profitType);
 
-                // 4. Calculate arbitrage
-                var grossProfit = mdRevenuePerDay - mrrCostPerDay;
-                var profitMargin = mrrCostPerDay > 0 ? (grossProfit / mrrCostPerDay) * 100 : 0;
+                // Revenue for the actual rental period
+                decimal mdActualRevenue = mdRevenuePerDay * (actualRentalHours / 24m);
+
+                // 5. Calculate MRR fees (3%)
+                decimal mrrFees = mrrActualCost * 0.03m;
+
+                // Mining-Dutch fees
+                decimal mdFees = mdActualRevenue * (mdAlgoStatus.Fees / 100m);
+
+                // 6. Calculate arbitrage for the rental period
+                decimal totalCost = mrrActualCost + mrrFees + mdFees;
+                decimal grossProfit = mdActualRevenue - totalCost;
+                decimal profitMargin = totalCost > 0 ? (grossProfit / totalCost) * 100 : 0;
+
+                // 7. Normalize to daily rates for comparison
+                decimal normalizedDailyCost = totalCost * (24m / actualRentalHours);
+                decimal normalizedDailyRevenue = mdActualRevenue * (24m / actualRentalHours);
+                decimal normalizedDailyProfit = grossProfit * (24m / actualRentalHours);
 
                 var opportunity = new ArbitrageOpportunity
                 {
@@ -68,26 +103,43 @@ namespace NHB3.Profitability
                     TargetPlatform = "Mining-Dutch",
                     Algorithm = algorithm,
 
-                    BuyCost = mrrCostPerDay,
-                    SellRevenue = mdRevenuePerDay,
-                    Fees = mrrCostPerDay * 0.03m + mdRevenuePerDay * (mdAlgoStatus.Fees / 100m),
+                    // Actual costs/revenue for the rental period
+                    BuyCost = mrrActualCost,
+                    SellRevenue = mdActualRevenue,
+                    Fees = mrrFees + mdFees,
                     NetProfit = grossProfit,
                     ProfitMargin = profitMargin,
 
                     RecommendedHashrate = cheapestRig.Hashrate,
-                    RecommendedDuration = (int)(cheapestRig.MinHours * 3600), // Convert to seconds
+                    RecommendedDuration = (int)(actualRentalHours * 3600), // Convert to seconds
 
                     ValidUntil = DateTime.UtcNow.AddHours(1),
                     Notes = $@"{(profitMargin > 0 ? "PROFITABLE ✅" : "NOT PROFITABLE ❌")}
-Rent rig #{cheapestRig.Id} on MRR: {cheapestRig.Hashrate:F2} MH @ {cheapestRig.Price:F8} BTC/MH/day = {mrrCostPerDay:F8} BTC/day
-Mine on Mining-Dutch: {mdRevenuePerDay:F8} BTC/day (using {profitType})
-Net profit: {grossProfit:F8} BTC/day ({profitMargin:F2}% margin)
-Rig rating: {cheapestRig.Rating:F1}/5, Min hours: {cheapestRig.MinHours}"
+
+RENTAL PERIOD: {actualRentalHours} hours (Min: {cheapestRig.MinHours}h, Max: {cheapestRig.MaxHours}h)
+
+Rig #{cheapestRig.Id}: {cheapestRig.Hashrate:F2} MH @ {cheapestRig.Price:F8} BTC/MH/day
+Rental Cost:  {mrrActualCost:F8} BTC for {actualRentalHours}h ({mrrCostPerDay:F8} BTC/day rate)
+MRR Fees:     {mrrFees:F8} BTC (3%)
+
+Mining Revenue: {mdActualRevenue:F8} BTC for {actualRentalHours}h ({mdRevenuePerDay:F8} BTC/day rate using {profitType})
+MD Fees:        {mdFees:F8} BTC ({mdAlgoStatus.Fees}%)
+
+NET PROFIT: {grossProfit:F8} BTC for {actualRentalHours}h rental ({profitMargin:F2}% margin)
+Daily equiv: {normalizedDailyProfit:F8} BTC/day if sustained
+
+Rig rating: {cheapestRig.Rating:F1}/5
+{(cheapestRig.MinHours != desiredDurationHours ? $"⚠️ Forced to rent {actualRentalHours}h (min constraint)" : "")}
+{(cheapestRig.MaxHours > 0 && cheapestRig.MaxHours < desiredDurationHours ? $"⚠️ Limited to {actualRentalHours}h (max constraint)" : "")}"
                 };
 
                 if (profitMargin > 0)
                 {
-                    Logger.Instance.Info($"💰 MRR→MD PROFITABLE: {algorithm} - {profitMargin:F2}% margin");
+                    Logger.Instance.Info($"💰 MRR→MD PROFITABLE: {algorithm} - {profitMargin:F2}% margin ({actualRentalHours}h rental)");
+                }
+                else
+                {
+                    Logger.Instance.Debug($"❌ MRR→MD NOT PROFITABLE: {algorithm} - {profitMargin:F2}% margin ({actualRentalHours}h rental)");
                 }
 
                 return opportunity;
@@ -102,11 +154,13 @@ Rig rating: {cheapestRig.Rating:F1}/5, Min hours: {cheapestRig.MinHours}"
         /// <summary>
         /// Calculate MRR → NiceHash Pool arbitrage
         /// Rent hash from MRR, mine on NiceHash pool (sell hashrate)
+        /// IMPORTANT: Accounts for minimum rental duration constraints
         /// </summary>
         public async Task<ArbitrageOpportunity> CalculateMrrToNiceHashAsync(
             string algorithm,
             decimal targetHashrateMh,
             string market = "USA",
+            int desiredDurationHours = 24,
             CancellationToken cancellationToken = default)
         {
             if (_mrrService == null)
@@ -124,9 +178,25 @@ Rig rating: {cheapestRig.Rating:F1}/5, Min hours: {cheapestRig.MinHours}"
                     return CreateFailedOpportunity(algorithm, "No MRR rigs available");
                 }
 
-                var mrrCostPerDay = cheapestRig.Price * cheapestRig.Hashrate;
+                // 2. Determine actual rental duration
+                decimal actualRentalHours = desiredDurationHours;
 
-                // 2. Get NiceHash selling price (what you'd earn mining/selling hash on NH)
+                if (actualRentalHours < cheapestRig.MinHours)
+                {
+                    actualRentalHours = cheapestRig.MinHours;
+                }
+
+                if (cheapestRig.MaxHours > 0 && actualRentalHours > cheapestRig.MaxHours)
+                {
+                    actualRentalHours = cheapestRig.MaxHours;
+                }
+
+                // 3. Calculate rental cost
+                decimal mrrCostPerDay = cheapestRig.Price * cheapestRig.Hashrate;
+                decimal mrrActualCost = mrrCostPerDay * (actualRentalHours / 24m);
+                decimal mrrFees = mrrActualCost * 0.03m;
+
+                // 4. Get NiceHash selling price (what you'd earn mining/selling hash on NH)
                 var nhMarketData = await _niceHashService.GetMarketDataAsync(algorithm, market, cancellationToken);
 
                 if (nhMarketData == null || !nhMarketData.PriceTiers.Any())
@@ -134,10 +204,8 @@ Rig rating: {cheapestRig.Rating:F1}/5, Min hours: {cheapestRig.MinHours}"
                     return CreateFailedOpportunity(algorithm, "No NH market data");
                 }
 
-                // Best sell price (what buyers pay - what you'd earn as a seller)
                 var nhSellPrice = nhMarketData.BestSellPrice;
 
-                // Get algorithm info
                 var nhAlgoInfo = await _niceHashService.GetAlgorithmAsync(algorithm, cancellationToken);
                 if (nhAlgoInfo == null)
                 {
@@ -147,14 +215,16 @@ Rig rating: {cheapestRig.Rating:F1}/5, Min hours: {cheapestRig.MinHours}"
                 // Convert MRR hashrate to NH units
                 var nhHashrate = AlgorithmMapper.ConvertHashrateToNiceHash(algorithm, cheapestRig.Hashrate);
 
-                // Calculate NH revenue
+                // Calculate NH revenue for the rental period
                 var priceFactor = decimal.Parse(nhAlgoInfo.PriceFactor);
                 var marketFactor = decimal.Parse(nhAlgoInfo.MarketFactor);
-                var nhRevenuePerDay = nhHashrate * nhSellPrice * priceFactor * marketFactor;
+                decimal nhRevenuePerDay = nhHashrate * nhSellPrice * priceFactor * marketFactor;
+                decimal nhActualRevenue = nhRevenuePerDay * (actualRentalHours / 24m);
 
-                // 3. Calculate arbitrage
-                var grossProfit = nhRevenuePerDay - mrrCostPerDay;
-                var profitMargin = mrrCostPerDay > 0 ? (grossProfit / mrrCostPerDay) * 100 : 0;
+                // 5. Calculate arbitrage
+                decimal totalCost = mrrActualCost + mrrFees;
+                decimal grossProfit = nhActualRevenue - totalCost;
+                decimal profitMargin = totalCost > 0 ? (grossProfit / totalCost) * 100 : 0;
 
                 return new ArbitrageOpportunity
                 {
@@ -163,21 +233,31 @@ Rig rating: {cheapestRig.Rating:F1}/5, Min hours: {cheapestRig.MinHours}"
                     TargetPlatform = $"NiceHash Pool ({market})",
                     Algorithm = algorithm,
 
-                    BuyCost = mrrCostPerDay,
-                    SellRevenue = nhRevenuePerDay,
-                    Fees = mrrCostPerDay * 0.03m,
+                    BuyCost = mrrActualCost,
+                    SellRevenue = nhActualRevenue,
+                    Fees = mrrFees,
                     NetProfit = grossProfit,
                     ProfitMargin = profitMargin,
 
                     RecommendedHashrate = nhHashrate,
-                    RecommendedDuration = (int)(cheapestRig.MinHours * 3600),
+                    RecommendedDuration = (int)(actualRentalHours * 3600),
 
                     ValidUntil = DateTime.UtcNow.AddHours(1),
                     Notes = $@"{(profitMargin > 0 ? "PROFITABLE ✅" : "NOT PROFITABLE ❌")}
-Rent rig #{cheapestRig.Id} on MRR: {cheapestRig.Hashrate:F2} MH @ {cheapestRig.Price:F8} BTC/MH/day = {mrrCostPerDay:F8} BTC/day
-Mine/sell on NiceHash: {nhHashrate:F2} {algorithm} @ {nhSellPrice:F8} BTC/unit/day = {nhRevenuePerDay:F8} BTC/day
-Net profit: {grossProfit:F8} BTC/day ({profitMargin:F2}% margin)
-Note: NH pool mining usually less profitable than NH→Pool arbitrage"
+
+RENTAL PERIOD: {actualRentalHours} hours (Min: {cheapestRig.MinHours}h, Max: {cheapestRig.MaxHours}h)
+
+Rig #{cheapestRig.Id}: {cheapestRig.Hashrate:F2} MH @ {cheapestRig.Price:F8} BTC/MH/day
+Rental Cost: {mrrActualCost:F8} BTC for {actualRentalHours}h
+MRR Fees:    {mrrFees:F8} BTC (3%)
+
+NiceHash Revenue: {nhActualRevenue:F8} BTC for {actualRentalHours}h ({nhRevenuePerDay:F8} BTC/day rate)
+({nhHashrate:F2} {algorithm} @ {nhSellPrice:F8} BTC/unit/day)
+
+NET PROFIT: {grossProfit:F8} BTC for {actualRentalHours}h rental ({profitMargin:F2}% margin)
+
+⚠️ Note: MRR→NH usually less profitable than NH→Pool or MRR→Pool arbitrage
+Rig rating: {cheapestRig.Rating:F1}/5"
                 };
             }
             catch (Exception ex)
@@ -195,6 +275,7 @@ Note: NH pool mining usually less profitable than NH→Pool arbitrage"
             string niceHashAlgorithm,
             decimal defaultHashrate = 1000m,
             string market = "USA",
+            int desiredDurationHours = 24,
             ProfitabilityType profitType = ProfitabilityType.Actual24h,
             CancellationToken cancellationToken = default)
         {
@@ -213,11 +294,11 @@ Note: NH pool mining usually less profitable than NH→Pool arbitrage"
             {
                 var mdHashrate = AlgorithmMapper.ConvertHashrateToMiningDutch(niceHashAlgorithm, defaultHashrate);
                 comparison.MrrToMd = await CalculateMrrToMiningDutchAsync(
-                    niceHashAlgorithm, mdHashrate, profitType, cancellationToken);
+                    niceHashAlgorithm, mdHashrate, profitType, desiredDurationHours, cancellationToken);
 
                 // Path 3: MRR → NiceHash
                 comparison.MrrToNh = await CalculateMrrToNiceHashAsync(
-                    niceHashAlgorithm, mdHashrate, market, cancellationToken);
+                    niceHashAlgorithm, mdHashrate, market, desiredDurationHours, cancellationToken);
             }
 
             // Determine best path
