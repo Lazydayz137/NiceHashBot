@@ -110,8 +110,14 @@
     <Compile Include="NiceHash\NiceHashService.cs" />
     <Compile Include="NiceHash\Models\NiceHashModels.cs" />
     <Compile Include="MiningRigRentals\MrrClient.cs" />
+    <Compile Include="MiningRigRentals\MrrModels.cs" />
+    <Compile Include="MiningRigRentals\MrrService.cs" />
+    <Compile Include="MiningDutch\MiningDutchClient.cs" />
+    <Compile Include="MiningDutch\AlgorithmMapper.cs" />
     <Compile Include="Profitability\WhatToMineClient.cs" />
     <Compile Include="Profitability\ProfitabilityEngine.cs" />
+    <Compile Include="Profitability\RealArbitrageCalculator.cs" />
+    <Compile Include="Profitability\RealArbitrageCalculator_MRR.cs" />
     <Compile Include="Strategies\BaseStrategy.cs" />
     <Compile Include="Strategies\MarketMakerStrategy.cs" />
     <EmbeddedResource Include="ApiForm.resx">
