@@ -134,6 +134,8 @@
     <Compile Include="Home_ArbitrageIntegration.cs">
       <DependentUpon>Home.cs</DependentUpon>
     </Compile>
+    <Compile Include="EquihashMonitor.cs" />
+    <Compile Include="EquihashConsole.cs" />
     <EmbeddedResource Include="ApiForm.resx">
       <DependentUpon>ApiForm.cs</DependentUpon>
     </EmbeddedResource>
