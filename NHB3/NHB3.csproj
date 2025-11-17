@@ -123,6 +123,9 @@
     <Compile Include="Profitability\RealArbitrageCalculator_MRR.cs" />
     <Compile Include="Profitability\AutoExecutionEngine.cs" />
     <Compile Include="Profitability\ArbitrageTracker.cs" />
+    <Compile Include="Profitability\PredictiveMetrics.cs" />
+    <Compile Include="Profitability\AlgorithmMonitorBase.cs" />
+    <Compile Include="Profitability\MultiAlgorithmMonitor.cs" />
     <Compile Include="Strategies\BaseStrategy.cs" />
     <Compile Include="Strategies\MarketMakerStrategy.cs" />
     <Compile Include="ArbitrageDashboard.cs">
@@ -136,6 +139,7 @@
     </Compile>
     <Compile Include="EquihashMonitor.cs" />
     <Compile Include="EquihashConsole.cs" />
+    <Compile Include="UnifiedArbitrageConsole.cs" />
     <EmbeddedResource Include="ApiForm.resx">
       <DependentUpon>ApiForm.cs</DependentUpon>
     </EmbeddedResource>
