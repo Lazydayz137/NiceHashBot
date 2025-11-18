@@ -153,9 +153,98 @@ namespace NHB3
             bf.ShowDialog();
         }
 
-        private void arbitrageToolStripMenuItem_Click(object sender, EventArgs e)
+        private void arbitrageDashboardToolStripMenuItem_Click(object sender, EventArgs e)
         {
             LaunchArbitrageDashboard();
+        }
+
+        private void multiAlgorithmMonitorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LaunchMultiAlgorithmMonitor();
+        }
+
+        private void equihashMonitorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LaunchEquihashMonitor();
+        }
+
+        private void LaunchMultiAlgorithmMonitor()
+        {
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = System.IO.Path.Combine(Application.StartupPath, "NHB3.exe"),
+                    Arguments = "multi",
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                System.Diagnostics.Process.Start(startInfo);
+
+                MessageBox.Show(
+                    "Multi-Algorithm Monitor launched in new window!\n\n" +
+                    "This will scan 5 algorithms:\n" +
+                    "• 💎 Equihash (Zcash, Bitcoin Gold)\n" +
+                    "• ₿ SHA-256 (Bitcoin)\n" +
+                    "• 🐕 Scrypt (Litecoin, Dogecoin)\n" +
+                    "• 💳 X11 (Dash)\n" +
+                    "• 🦅 KawPow (Ravencoin)\n\n" +
+                    "Shows ranked profitability with predictive analytics!",
+                    "Multi-Algorithm Monitor",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to launch Multi-Algorithm Monitor:\n\n{ex.Message}",
+                    "Launch Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
+        }
+
+        private void LaunchEquihashMonitor()
+        {
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = System.IO.Path.Combine(Application.StartupPath, "NHB3.exe"),
+                    Arguments = "equihash",
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+
+                System.Diagnostics.Process.Start(startInfo);
+
+                MessageBox.Show(
+                    "Equihash Monitor launched in new window!\n\n" +
+                    "Specialized monitoring for your Equihash contracts:\n" +
+                    "• Top 5 cheapest MRR rigs\n" +
+                    "• 4 NiceHash hashrate tiers (500-5000 Sol/s)\n" +
+                    "• Predictive profitability metrics\n" +
+                    "• Risk assessment\n" +
+                    "• Earnings projections\n" +
+                    "• Session statistics\n\n" +
+                    "Perfect for monitoring active MRR Equihash rentals!",
+                    "Equihash Monitor",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to launch Equihash Monitor:\n\n{ex.Message}",
+                    "Launch Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
         }
 
         private void newOrderToolStripMenuItem_Click(object sender, EventArgs e)
