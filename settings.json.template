@@ -1,0 +1,13 @@
+{
+  "OrganizationID": "YOUR_ORGANIZATION_ID_HERE",
+  "ApiID": "YOUR_API_KEY_HERE",
+  "ApiSecret": "YOUR_API_SECRET_HERE",
+  "Enviorment": 1,
+  "MrrApiKey": "YOUR_MRR_API_KEY_HERE",
+  "MrrApiSecret": "YOUR_MRR_API_SECRET_HERE",
+  "Notes": {
+    "Environment": "0 = Testnet, 1 = Production",
+    "MRR": "Optional - only needed for MRR arbitrage paths",
+    "Setup": "1. Copy this file to settings.json, 2. Fill in your credentials, 3. NEVER commit settings.json to git"
+  }
+}

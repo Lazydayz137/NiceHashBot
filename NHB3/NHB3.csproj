@@ -96,6 +96,50 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Core\Interfaces\IApiClient.cs" />
+    <Compile Include="Core\Interfaces\IProfitabilityCalculator.cs" />
+    <Compile Include="Core\Interfaces\IStrategy.cs" />
+    <Compile Include="Core\Models\MarketData.cs" />
+    <Compile Include="Core\Models\ProfitabilityReport.cs" />
+    <Compile Include="Core\Models\StrategyConfig.cs" />
+    <Compile Include="Core\Services\Logger.cs" />
+    <Compile Include="Core\Services\ConfigManager.cs" />
+    <Compile Include="Core\Services\SystemHealthCheck.cs" />
+    <Compile Include="Utils\RateLimiter.cs" />
+    <Compile Include="Utils\RetryPolicy.cs" />
+    <Compile Include="Utils\HashCalculator.cs" />
+    <Compile Include="Utils\DataValidator.cs" />
+    <Compile Include="NiceHash\NiceHashClient.cs" />
+    <Compile Include="NiceHash\NiceHashService.cs" />
+    <Compile Include="NiceHash\Models\NiceHashModels.cs" />
+    <Compile Include="MiningRigRentals\MrrClient.cs" />
+    <Compile Include="MiningRigRentals\MrrModels.cs" />
+    <Compile Include="MiningRigRentals\MrrService.cs" />
+    <Compile Include="MiningDutch\MiningDutchClient.cs" />
+    <Compile Include="MiningDutch\AlgorithmMapper.cs" />
+    <Compile Include="Profitability\WhatToMineClient.cs" />
+    <Compile Include="Profitability\ProfitabilityEngine.cs" />
+    <Compile Include="Profitability\RealArbitrageCalculator.cs" />
+    <Compile Include="Profitability\RealArbitrageCalculator_MRR.cs" />
+    <Compile Include="Profitability\AutoExecutionEngine.cs" />
+    <Compile Include="Profitability\ArbitrageTracker.cs" />
+    <Compile Include="Profitability\PredictiveMetrics.cs" />
+    <Compile Include="Profitability\AlgorithmMonitorBase.cs" />
+    <Compile Include="Profitability\MultiAlgorithmMonitor.cs" />
+    <Compile Include="Strategies\BaseStrategy.cs" />
+    <Compile Include="Strategies\MarketMakerStrategy.cs" />
+    <Compile Include="ArbitrageDashboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ArbitrageDashboard.Designer.cs">
+      <DependentUpon>ArbitrageDashboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Home_ArbitrageIntegration.cs">
+      <DependentUpon>Home.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EquihashMonitor.cs" />
+    <Compile Include="EquihashConsole.cs" />
+    <Compile Include="UnifiedArbitrageConsole.cs" />
     <EmbeddedResource Include="ApiForm.resx">
       <DependentUpon>ApiForm.cs</DependentUpon>
     </EmbeddedResource>

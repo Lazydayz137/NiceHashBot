@@ -1,0 +1,51 @@
+{
+  "RiskManagement": {
+    "MaxDailySpend": 0.1,
+    "MaxOrderSize": 0.01,
+    "StopLossEnabled": true,
+    "StopLossThreshold": 0.2,
+    "MinProfitMargin": 5.0,
+    "AutoExecuteMarginThreshold": 15.0
+  },
+  "MiningRigRentals": {
+    "Enabled": true,
+    "RedirectToPool": "mining-dutch",
+    "DefaultDuration": 24,
+    "MaxPricePerMH": 0.00001
+  },
+  "MiningDutch": {
+    "BTCAddress": "YOUR_BTC_ADDRESS_HERE",
+    "WorkerPrefix": "NHB3"
+  },
+  "NiceHash": {
+    "BTCAddress": "YOUR_NICEHASH_BTC_ADDRESS_HERE",
+    "DefaultMarket": "USA",
+    "OrderType": "STANDARD"
+  },
+  "Arbitrage": {
+    "ScanIntervalMinutes": 5,
+    "DefaultHashrateMultiplier": 1000,
+    "MinimumOpportunities": 1,
+    "PreferredMetric": "Actual24h",
+    "EnabledPaths": ["NiceHash→MiningDutch", "MRR→MiningDutch", "MRR→NiceHash"]
+  },
+  "Logging": {
+    "LogLevel": "Info",
+    "LogToFile": true,
+    "LogToConsole": true,
+    "RetentionDays": 30
+  },
+  "Performance": {
+    "CacheDurationMinutes": 2,
+    "RateLimitPerMinute": 100,
+    "MaxRetryAttempts": 3,
+    "RetryDelaySeconds": 2
+  },
+  "Notifications": {
+    "Enabled": false,
+    "WebhookUrl": "",
+    "NotifyOnExecution": true,
+    "NotifyOnHighMargin": true,
+    "HighMarginThreshold": 20.0
+  }
+}
