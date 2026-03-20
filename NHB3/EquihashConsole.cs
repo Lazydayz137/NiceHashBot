@@ -23,7 +23,7 @@ namespace NHB3
                 PrintBanner();
 
                 // Load configuration
-                var config = ConfigManager.LoadConfig();
+                var config = ConfigManager.Instance.LoadApiSettings();
 
                 // Initialize clients with validation
                 Console.WriteLine("┌─────────────────────────────────────────────────────────┐");
@@ -39,7 +39,10 @@ namespace NHB3
 
                 try
                 {
-                    nhClient = new NiceHashClient(config.OrganizationID, config.ApiID, config.ApiSecret);
+                    var baseUrl = config.Environment == 1
+                        ? "https://api2.nicehash.com"
+                        : "https://api-test.nicehash.com";
+                    nhClient = new NiceHashClient(baseUrl, config.OrganizationID, config.ApiID, config.ApiSecret);
                     nhService = new NiceHashService(nhClient);
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("✓ NiceHash configured");

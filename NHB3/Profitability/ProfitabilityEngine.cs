@@ -137,8 +137,9 @@ namespace NHB3.Profitability
                             Algorithm = algorithm,
                             BuyCost = buyPrice,
                             SellRevenue = sellPrice,
-                            Fees = buyPrice * 0.03m, // Assume 3% fees
-                            NetProfit = (sellPrice - buyPrice) - (buyPrice * 0.03m),
+                            // NiceHash fee: 2% of order spend + 0.00001 BTC order creation fee
+                            Fees = (buyPrice * 0.02m) + 0.00001m,
+                            NetProfit = (sellPrice - buyPrice) - ((buyPrice * 0.02m) + 0.00001m),
                             ProfitMargin = profitMargin,
                             ValidUntil = DateTime.UtcNow.AddHours(1),
                             Notes = $"Spread arbitrage: Buy @ {buyPrice:F8}, Sell @ {sellPrice:F8}"

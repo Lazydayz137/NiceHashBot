@@ -217,7 +217,8 @@ namespace NHB3.Core.Services
         public bool EnableCrossPoolAnalysis { get; set; } = true;
         public bool WhatToMineEnabled { get; set; } = true;
         public int UpdateInterval { get; set; } = 300;
-        public decimal MinProfitMargin { get; set; } = 0.05m;
+        /// <summary>Minimum profit margin as a percentage (e.g. 5.0 = 5%)</summary>
+        public decimal MinProfitMargin { get; set; } = 5.0m;
     }
 
     public class RiskManagementSettings

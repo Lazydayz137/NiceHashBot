@@ -313,9 +313,9 @@ namespace NHB3
             if (e.RowIndex < 0) return;
 
             var row = dgvOpportunities.Rows[e.RowIndex];
-            if (row.Cells["Margin"].Value != null)
+            if (row.Cells["Margin"].Value != null &&
+                decimal.TryParse(row.Cells["Margin"].Value.ToString(), out var margin))
             {
-                var margin = decimal.Parse(row.Cells["Margin"].Value.ToString());
 
                 // Color code by margin
                 if (margin > 15)

@@ -23,7 +23,8 @@ namespace NHB3
                 PrintBanner();
 
                 // Load configuration
-                var config = ConfigManager.LoadConfig();
+                var apiSettings = ConfigManager.Instance.LoadApiSettings();
+                var botConfig = ConfigManager.Instance.LoadBotConfig();
 
                 // Initialize services
                 Console.WriteLine("┌─────────────────────────────────────────────────────────┐");
@@ -32,7 +33,7 @@ namespace NHB3
                 Console.ResetColor();
                 Console.WriteLine("└─────────────────────────────────────────────────────────┘\n");
 
-                var (nhService, mdClient, mrrService) = await InitializeServicesAsync(config);
+                var (nhService, mdClient, mrrService) = await InitializeServicesAsync(apiSettings);
 
                 if (nhService == null || mdClient == null)
                 {
@@ -132,7 +133,7 @@ namespace NHB3
             }
         }
 
-        private static async Task<(NiceHashService, MiningDutchClient, MrrService)> InitializeServicesAsync(ConfigManager config)
+        private static async Task<(NiceHashService, MiningDutchClient, MrrService)> InitializeServicesAsync(ApiSettings apiSettings)
         {
             NiceHashService nhService = null;
             MiningDutchClient mdClient = null;
@@ -140,7 +141,10 @@ namespace NHB3
 
             try
             {
-                var nhClient = new NiceHashClient(config.OrganizationID, config.ApiID, config.ApiSecret);
+                var baseUrl = apiSettings.Environment == 1
+                    ? "https://api2.nicehash.com"
+                    : "https://api-test.nicehash.com";
+                var nhClient = new NiceHashClient(baseUrl, apiSettings.OrganizationID, apiSettings.ApiID, apiSettings.ApiSecret);
                 nhService = new NiceHashService(nhClient);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("✓ NiceHash configured");
@@ -167,11 +171,11 @@ namespace NHB3
                 Console.ResetColor();
             }
 
-            if (!string.IsNullOrEmpty(config.MrrApiKey) && !string.IsNullOrEmpty(config.MrrApiSecret))
+            if (!string.IsNullOrEmpty(apiSettings.MrrApiKey) && !string.IsNullOrEmpty(apiSettings.MrrApiSecret))
             {
                 try
                 {
-                    var mrrClient = new MrrClient(config.MrrApiKey, config.MrrApiSecret);
+                    var mrrClient = new MrrClient(apiSettings.MrrApiKey, apiSettings.MrrApiSecret);
                     mrrService = new MrrService(mrrClient);
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("✓ MRR configured");

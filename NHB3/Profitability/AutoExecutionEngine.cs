@@ -299,10 +299,11 @@ namespace NHB3.Profitability
                 return false;
             }
 
-            // Check profit margin threshold
-            if (opportunity.ProfitMargin < 5.0m)
+            // Check profit margin threshold (configured in bot.json → Profitability.MinProfitMargin)
+            var minMargin = _config?.Profitability?.MinProfitMargin ?? 5.0m;
+            if (opportunity.ProfitMargin < minMargin)
             {
-                error = $"Profit margin too low: {opportunity.ProfitMargin:F2}% (min: 5%)";
+                error = $"Profit margin too low: {opportunity.ProfitMargin:F2}% (min: {minMargin:F2}%)";
                 return false;
             }
 
