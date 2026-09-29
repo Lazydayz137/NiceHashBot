@@ -126,8 +126,11 @@ namespace NHB3.Profitability
                 if (sellPrice > buyPrice)
                 {
                     var profitMargin = ((sellPrice - buyPrice) / buyPrice) * 100;
+                    // NiceHash fee: 2% of order spend + 0.00001 BTC order creation fee
+                    var fees = (buyPrice * 0.02m) + 0.00001m;
+                    var netProfit = (sellPrice - buyPrice) - fees;
 
-                    if (profitMargin >= minProfitMargin * 100)
+                    if (profitMargin >= minProfitMargin * 100 && netProfit > 0)
                     {
                         opportunities.Add(new ArbitrageOpportunity
                         {
@@ -137,9 +140,8 @@ namespace NHB3.Profitability
                             Algorithm = algorithm,
                             BuyCost = buyPrice,
                             SellRevenue = sellPrice,
-                            // NiceHash fee: 2% of order spend + 0.00001 BTC order creation fee
-                            Fees = (buyPrice * 0.02m) + 0.00001m,
-                            NetProfit = (sellPrice - buyPrice) - ((buyPrice * 0.02m) + 0.00001m),
+                            Fees = fees,
+                            NetProfit = netProfit,
                             ProfitMargin = profitMargin,
                             ValidUntil = DateTime.UtcNow.AddHours(1),
                             Notes = $"Spread arbitrage: Buy @ {buyPrice:F8}, Sell @ {sellPrice:F8}"

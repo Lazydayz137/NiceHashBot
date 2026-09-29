@@ -220,10 +220,12 @@ NHB3.exe help
    1 - Scan All Algorithms    → Quick market overview
    2 - Continuous Monitor     → Auto-scan every 5 min
    3 - Equihash Monitor       → Jump to Equihash
-   4 - Single Algorithm       → Choose specific algorithm
+   4 - Single Algorithm       → Currently returns Equihash results for any selection
    5 - Algorithm Guide        → Hardware & tips per algo
    6 - Help                   → Comprehensive help
    ```
+
+   Option 4 uses `RunAlgorithmSelection` in `NHB3/UnifiedArbitrageConsole.cs`, which currently scans Equihash regardless of the chosen algorithm.
 
 3. **Review Rankings:**
    ```

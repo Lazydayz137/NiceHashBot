@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -226,12 +227,17 @@ namespace NHB3.NiceHash
 
             // Filter for specific market and active orders
             var marketOrders = orders
-                .Where(o =>
-                    o.Market == market &&
-                    o.Type == "STANDARD" &&
-                    decimal.TryParse(o.AcceptedCurrentSpeed, out var spd) && spd > 0 &&
-                    decimal.TryParse(o.Price, out _))
-                .OrderBy(o => decimal.Parse(o.Price))
+                .Where(o => o.Market == market && o.Type == "STANDARD")
+                .Select(o =>
+                {
+                    var validSpeed = decimal.TryParse(o.AcceptedCurrentSpeed, NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var speed);
+                    var validPrice = decimal.TryParse(o.Price, NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var price);
+                    return new { Speed = speed, Price = price, IsValid = validSpeed && speed > 0 && validPrice };
+                })
+                .Where(o => o.IsValid)
+                .OrderBy(o => o.Price)
                 .ToList();
 
             var marketData = new Core.Models.MarketData
@@ -243,20 +249,18 @@ namespace NHB3.NiceHash
 
             if (marketOrders.Any())
             {
-                marketData.BestBuyPrice = decimal.Parse(marketOrders.First().Price);
-                marketData.BestSellPrice = decimal.Parse(marketOrders.Last().Price);
-                marketData.AveragePrice = marketOrders.Average(o => decimal.Parse(o.Price));
-                marketData.TotalHashrate = marketOrders.Sum(o =>
-                    decimal.TryParse(o.AcceptedCurrentSpeed, out var s) ? s : 0m);
+                marketData.BestBuyPrice = marketOrders.First().Price;
+                marketData.BestSellPrice = marketOrders.Last().Price;
+                marketData.AveragePrice = marketOrders.Average(o => o.Price);
+                marketData.TotalHashrate = marketOrders.Sum(o => o.Speed);
 
                 // Build price tiers
                 var priceTiers = marketOrders
-                    .GroupBy(o => decimal.Parse(o.Price))
+                    .GroupBy(o => o.Price)
                     .Select(g => new Core.Models.PriceTier
                     {
                         Price = g.Key,
-                        TotalHashrate = g.Sum(o =>
-                            decimal.TryParse(o.AcceptedCurrentSpeed, out var s) ? s : 0m),
+                        TotalHashrate = g.Sum(o => o.Speed),
                         OrderCount = g.Count()
                     })
                     .OrderBy(t => t.Price)
