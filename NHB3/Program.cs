@@ -9,9 +9,9 @@ namespace NHB3
     static class Program
     {
         /// <summary>
-        /// The main entry point for the application.
-        /// Supports both GUI mode and Console monitoring modes
+        /// Runs the GUI when no arguments are supplied; otherwise waits for the selected console mode.
         /// </summary>
+        /// <param name="args">The first argument selects the console mode; remaining arguments are ignored.</param>
         [STAThread]
         static void Main(string[] args)
         {
@@ -29,8 +29,12 @@ namespace NHB3
         }
 
         /// <summary>
-        /// Run console-based monitoring modes
+        /// Runs a console monitor, or displays help for help requests and unknown modes.
+        /// Catches mode failures and waits for a keypress; errors in console error handling can propagate.
         /// </summary>
+        /// <param name="mode">
+        /// Mode name, converted to lowercase: multi/unified, equihash/eq, or help/?/-h/--help.
+        /// </param>
         private static async Task RunConsoleMode(string mode)
         {
             try

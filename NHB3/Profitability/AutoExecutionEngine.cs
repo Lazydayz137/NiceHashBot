@@ -294,6 +294,13 @@ namespace NHB3.Profitability
         /// <param name="opportunity">The arbitrage opportunity to validate.</param>
         /// <param name="error">The first validation failure, or null when all checks pass.</param>
         /// <returns>True when the opportunity passes the execution checks; otherwise, false.</returns>
+        /// <remarks>
+        /// The minimum margin is in percentage points (default 5%), and the maximum order cost is in BTC.
+        /// Margin and order-size limits are inclusive. Cumulative daily spending is not checked.
+        /// </remarks>
+        /// <exception cref="NullReferenceException">
+        /// The opportunity is null, or configuration or RiskManagement is null when checking order size.
+        /// </exception>
         private bool ValidateExecution(ArbitrageOpportunity opportunity, out string error)
         {
             error = null;

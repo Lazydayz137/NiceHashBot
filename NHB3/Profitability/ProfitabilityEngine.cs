@@ -103,12 +103,15 @@ namespace NHB3.Profitability
 
         /// <summary>
         /// Finds NiceHash market-spread opportunities meeting the margin threshold before fees,
-        /// and calculates their fees and net profit.
+        /// with positive net profit after deducting 2% of the buy price plus a fixed 0.00001 BTC fee.
         /// </summary>
         /// <param name="algorithm">The mining algorithm to analyze.</param>
         /// <param name="minProfitMargin">The minimum margin as a fraction, such as 0.05 for 5%.</param>
-        /// <param name="cancellationToken">The token passed to the market-data request.</param>
-        /// <returns>A task yielding matching opportunities, or an empty list when none are found or retrieval fails.</returns>
+        /// <param name="cancellationToken">Passed to the market-data request; cancellation is caught as a scan failure.</param>
+        /// <returns>
+        /// At most one USA market-spread opportunity, with ProfitMargin in percentage points before fees.
+        /// Returns an empty list when none qualify or fetching or calculating the spread fails.
+        /// </returns>
         public async Task<List<ArbitrageOpportunity>> FindArbitrageOpportunitiesAsync(
             string algorithm,
             decimal minProfitMargin = 0.05m,

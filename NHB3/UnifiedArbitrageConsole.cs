@@ -19,6 +19,10 @@ namespace NHB3
         /// Initializes configured services and runs the interactive multi-algorithm monitoring menu until exit.
         /// </summary>
         /// <returns>A task that completes when the console session ends.</returns>
+        /// <remarks>
+        /// Requires NiceHash and Mining-Dutch clients; MRR is optional. Missing required clients
+        /// or fatal menu errors cause a keypress prompt before returning. Errors in console error handling can propagate.
+        /// </remarks>
         public static async Task RunAsync()
         {
             try
@@ -140,8 +144,13 @@ namespace NHB3
         /// <summary>
         /// Initializes NiceHash, Mining-Dutch, and optional MRR services, reporting initialization failures to the console.
         /// </summary>
-        /// <param name="apiSettings">The NiceHash environment and API credentials, including optional MRR credentials.</param>
+        /// <param name="apiSettings">
+        /// The NiceHash environment and API credentials, including optional MRR credentials. Environment 1
+        /// selects production; all other values select the test API. MRR requires both a key and a secret.
+        /// </param>
         /// <returns>A task yielding the three services, with null entries for failed or unconfigured services.</returns>
+        /// <remarks>Client creation does not test connectivity or validate credentials with the services.</remarks>
+        /// <exception cref="NullReferenceException"><paramref name="apiSettings"/> is null.</exception>
         private static async Task<(NiceHashService, MiningDutchClient, MrrService)> InitializeServicesAsync(ApiSettings apiSettings)
         {
             NiceHashService nhService = null;

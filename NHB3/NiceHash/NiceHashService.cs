@@ -221,6 +221,21 @@ namespace NHB3.NiceHash
         /// <summary>
         /// Get aggregated market data for an algorithm
         /// </summary>
+        /// <param name="algorithm">API algorithm filter; null or empty requests all algorithms.</param>
+        /// <param name="market">Market code matched exactly against each order, defaulting to USA.</param>
+        /// <param name="cancellationToken">Cancels the API request or waits for rate limiting and retries.</param>
+        /// <returns>
+        /// Aggregates of STANDARD orders with a positive accepted speed and a parseable price,
+        /// using invariant-culture numbers in the API's units. BestBuyPrice and BestSellPrice are
+        /// the lowest and highest prices; AveragePrice is unweighted and price tiers are ascending.
+        /// If no orders qualify, numeric values are zero and price tiers are empty.
+        /// </returns>
+        /// <remarks>Malformed prices or speeds are skipped; request and response errors propagate.</remarks>
+        /// <exception cref="OperationCanceledException">The request is canceled or times out.</exception>
+        /// <exception cref="NiceHashApiException">NiceHash returns an HTTP or API error.</exception>
+        /// <exception cref="System.Net.Http.HttpRequestException">The HTTP request fails.</exception>
+        /// <exception cref="Newtonsoft.Json.JsonException">The response cannot be parsed or deserialized.</exception>
+        /// <exception cref="OverflowException">Aggregating prices or speeds exceeds the decimal range.</exception>
         public async Task<Core.Models.MarketData> GetMarketDataAsync(string algorithm, string market = "USA", CancellationToken cancellationToken = default)
         {
             var orders = await GetMarketOrdersAsync(algorithm, cancellationToken);

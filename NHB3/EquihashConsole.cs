@@ -19,6 +19,11 @@ namespace NHB3
         /// Initializes configured services and runs the interactive Equihash monitoring menu until exit.
         /// </summary>
         /// <returns>A task that completes when the console session ends.</returns>
+        /// <remarks>
+        /// NiceHash uses production only when Environment is 1, otherwise the test API.
+        /// Requires NiceHash and Mining-Dutch clients; MRR is optional. Missing required clients
+        /// or fatal menu errors cause a keypress prompt before returning. Errors in console error handling can propagate.
+        /// </remarks>
         public static async Task RunAsync()
         {
             try
