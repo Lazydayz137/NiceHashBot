@@ -108,7 +108,12 @@ namespace NHB3.Core.Services
         public string OrganizationID { get; set; }
         public string ApiID { get; set; }
         public string ApiSecret { get; set; }
+        [JsonProperty("Environment")]
         public int Environment { get; set; } // 0=Test, 1=Production, 99=Dev
+
+        // Accept settings written by the legacy UI without emitting the misspelled key.
+        [JsonProperty("Enviorment")]
+        private int LegacyEnvironment { set => Environment = value; }
 
         // MiningRigRentals Credentials
         public string MrrApiKey { get; set; }
@@ -217,7 +222,15 @@ namespace NHB3.Core.Services
         public bool EnableCrossPoolAnalysis { get; set; } = true;
         public bool WhatToMineEnabled { get; set; } = true;
         public int UpdateInterval { get; set; } = 300;
-        public decimal MinProfitMargin { get; set; } = 0.05m;
+        /// <summary>Minimum profit margin as a percentage (e.g. 5.0 = 5%)</summary>
+        public decimal MinProfitMargin
+        {
+            get => _minProfitMargin;
+            // Normalize the legacy 5% default for both JSON loading and in-memory settings.
+            set => _minProfitMargin = value == 0.05m ? 5.0m : value;
+        }
+
+        private decimal _minProfitMargin = 5.0m;
     }
 
     public class RiskManagementSettings

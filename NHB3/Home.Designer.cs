@@ -40,6 +40,9 @@ namespace NHB3
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
             this.botToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.arbitrageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.arbitrageDashboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.multiAlgorithmMonitorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.equihashMonitorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
             this.autoPilotOffToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -159,10 +162,34 @@ namespace NHB3
             //
             // arbitrageToolStripMenuItem
             //
+            this.arbitrageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.arbitrageDashboardToolStripMenuItem,
+            this.multiAlgorithmMonitorToolStripMenuItem,
+            this.equihashMonitorToolStripMenuItem});
             this.arbitrageToolStripMenuItem.Name = "arbitrageToolStripMenuItem";
             this.arbitrageToolStripMenuItem.Size = new System.Drawing.Size(180, 34);
             this.arbitrageToolStripMenuItem.Text = "Arbitrage 💎";
-            this.arbitrageToolStripMenuItem.Click += new System.EventHandler(this.arbitrageToolStripMenuItem_Click);
+            //
+            // arbitrageDashboardToolStripMenuItem
+            //
+            this.arbitrageDashboardToolStripMenuItem.Name = "arbitrageDashboardToolStripMenuItem";
+            this.arbitrageDashboardToolStripMenuItem.Size = new System.Drawing.Size(300, 34);
+            this.arbitrageDashboardToolStripMenuItem.Text = "📊 Dashboard";
+            this.arbitrageDashboardToolStripMenuItem.Click += new System.EventHandler(this.arbitrageDashboardToolStripMenuItem_Click);
+            //
+            // multiAlgorithmMonitorToolStripMenuItem
+            //
+            this.multiAlgorithmMonitorToolStripMenuItem.Name = "multiAlgorithmMonitorToolStripMenuItem";
+            this.multiAlgorithmMonitorToolStripMenuItem.Size = new System.Drawing.Size(300, 34);
+            this.multiAlgorithmMonitorToolStripMenuItem.Text = "⚡ Multi-Algorithm Monitor";
+            this.multiAlgorithmMonitorToolStripMenuItem.Click += new System.EventHandler(this.multiAlgorithmMonitorToolStripMenuItem_Click);
+            //
+            // equihashMonitorToolStripMenuItem
+            //
+            this.equihashMonitorToolStripMenuItem.Name = "equihashMonitorToolStripMenuItem";
+            this.equihashMonitorToolStripMenuItem.Size = new System.Drawing.Size(300, 34);
+            this.equihashMonitorToolStripMenuItem.Text = "💎 Equihash Monitor";
+            this.equihashMonitorToolStripMenuItem.Click += new System.EventHandler(this.equihashMonitorToolStripMenuItem_Click);
             //
             // statusStrip1
             //
@@ -476,6 +503,9 @@ namespace NHB3
         private System.Windows.Forms.ToolStripMenuItem autoPilotONToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem botToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem arbitrageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem arbitrageDashboardToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem multiAlgorithmMonitorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem equihashMonitorToolStripMenuItem;
         private System.Windows.Forms.Panel panelMetrics;
         private System.Windows.Forms.Panel panelBalance;
         private System.Windows.Forms.Label lblBalance;

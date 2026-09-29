@@ -288,6 +288,19 @@ namespace NHB3.Profitability
             }
         }
 
+        /// <summary>
+        /// Checks expiration, the configured profit margin, and order size when the daily spend limit is enabled.
+        /// </summary>
+        /// <param name="opportunity">The arbitrage opportunity to validate.</param>
+        /// <param name="error">The first validation failure, or null when all checks pass.</param>
+        /// <returns>True when the opportunity passes the execution checks; otherwise, false.</returns>
+        /// <remarks>
+        /// The minimum margin is in percentage points (default 5%), and the maximum order cost is in BTC.
+        /// Margin and order-size limits are inclusive. Cumulative daily spending is not checked.
+        /// </remarks>
+        /// <exception cref="NullReferenceException">
+        /// The opportunity is null, or configuration or RiskManagement is null when checking order size.
+        /// </exception>
         private bool ValidateExecution(ArbitrageOpportunity opportunity, out string error)
         {
             error = null;
@@ -299,10 +312,11 @@ namespace NHB3.Profitability
                 return false;
             }
 
-            // Check profit margin threshold
-            if (opportunity.ProfitMargin < 5.0m)
+            // Check profit margin threshold (configured in bot.json → Profitability.MinProfitMargin)
+            var minMargin = _config?.Profitability?.MinProfitMargin ?? 5.0m;
+            if (opportunity.ProfitMargin < minMargin)
             {
-                error = $"Profit margin too low: {opportunity.ProfitMargin:F2}% (min: 5%)";
+                error = $"Profit margin too low: {opportunity.ProfitMargin:F2}% (min: {minMargin:F2}%)";
                 return false;
             }
 

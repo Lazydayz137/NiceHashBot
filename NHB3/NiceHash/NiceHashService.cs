@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -220,14 +221,38 @@ namespace NHB3.NiceHash
         /// <summary>
         /// Get aggregated market data for an algorithm
         /// </summary>
+        /// <param name="algorithm">API algorithm filter; null or empty requests all algorithms.</param>
+        /// <param name="market">Market code matched exactly against each order, defaulting to USA.</param>
+        /// <param name="cancellationToken">Cancels the API request or waits for rate limiting and retries.</param>
+        /// <returns>
+        /// Aggregates of STANDARD orders with a positive accepted speed and a parseable price,
+        /// using invariant-culture numbers in the API's units. BestBuyPrice and BestSellPrice are
+        /// the lowest and highest prices; AveragePrice is unweighted and price tiers are ascending.
+        /// If no orders qualify, numeric values are zero and price tiers are empty.
+        /// </returns>
+        /// <remarks>Malformed prices or speeds are skipped; request and response errors propagate.</remarks>
+        /// <exception cref="OperationCanceledException">The request is canceled or times out.</exception>
+        /// <exception cref="NiceHashApiException">NiceHash returns an HTTP or API error.</exception>
+        /// <exception cref="System.Net.Http.HttpRequestException">The HTTP request fails.</exception>
+        /// <exception cref="Newtonsoft.Json.JsonException">The response cannot be parsed or deserialized.</exception>
+        /// <exception cref="OverflowException">Aggregating prices or speeds exceeds the decimal range.</exception>
         public async Task<Core.Models.MarketData> GetMarketDataAsync(string algorithm, string market = "USA", CancellationToken cancellationToken = default)
         {
             var orders = await GetMarketOrdersAsync(algorithm, cancellationToken);
 
             // Filter for specific market and active orders
             var marketOrders = orders
-                .Where(o => o.Market == market && o.Type == "STANDARD" && o.AcceptedCurrentSpeed > 0)
-                .OrderBy(o => decimal.Parse(o.Price))
+                .Where(o => o.Market == market && o.Type == "STANDARD")
+                .Select(o =>
+                {
+                    var validSpeed = decimal.TryParse(o.AcceptedCurrentSpeed, NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var speed);
+                    var validPrice = decimal.TryParse(o.Price, NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var price);
+                    return new { Speed = speed, Price = price, IsValid = validSpeed && speed > 0 && validPrice };
+                })
+                .Where(o => o.IsValid)
+                .OrderBy(o => o.Price)
                 .ToList();
 
             var marketData = new Core.Models.MarketData
@@ -239,18 +264,18 @@ namespace NHB3.NiceHash
 
             if (marketOrders.Any())
             {
-                marketData.BestBuyPrice = decimal.Parse(marketOrders.First().Price);
-                marketData.BestSellPrice = decimal.Parse(marketOrders.Last().Price);
-                marketData.AveragePrice = marketOrders.Average(o => decimal.Parse(o.Price));
-                marketData.TotalHashrate = marketOrders.Sum(o => decimal.Parse(o.AcceptedCurrentSpeed));
+                marketData.BestBuyPrice = marketOrders.First().Price;
+                marketData.BestSellPrice = marketOrders.Last().Price;
+                marketData.AveragePrice = marketOrders.Average(o => o.Price);
+                marketData.TotalHashrate = marketOrders.Sum(o => o.Speed);
 
                 // Build price tiers
                 var priceTiers = marketOrders
-                    .GroupBy(o => decimal.Parse(o.Price))
+                    .GroupBy(o => o.Price)
                     .Select(g => new Core.Models.PriceTier
                     {
                         Price = g.Key,
-                        TotalHashrate = g.Sum(o => decimal.Parse(o.AcceptedCurrentSpeed)),
+                        TotalHashrate = g.Sum(o => o.Speed),
                         OrderCount = g.Count()
                     })
                     .OrderBy(t => t.Price)

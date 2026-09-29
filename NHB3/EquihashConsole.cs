@@ -15,6 +15,15 @@ namespace NHB3
     /// </summary>
     public class EquihashConsole
     {
+        /// <summary>
+        /// Initializes configured services and runs the interactive Equihash monitoring menu until exit.
+        /// </summary>
+        /// <returns>A task that completes when the console session ends.</returns>
+        /// <remarks>
+        /// NiceHash uses production only when Environment is 1, otherwise the test API.
+        /// Requires NiceHash and Mining-Dutch clients; MRR is optional. Missing required clients
+        /// or fatal menu errors cause a keypress prompt before returning. Errors in console error handling can propagate.
+        /// </remarks>
         public static async Task RunAsync()
         {
             try
@@ -23,7 +32,7 @@ namespace NHB3
                 PrintBanner();
 
                 // Load configuration
-                var config = ConfigManager.LoadConfig();
+                var config = ConfigManager.Instance.LoadApiSettings();
 
                 // Initialize clients with validation
                 Console.WriteLine("┌─────────────────────────────────────────────────────────┐");
@@ -39,7 +48,10 @@ namespace NHB3
 
                 try
                 {
-                    nhClient = new NiceHashClient(config.OrganizationID, config.ApiID, config.ApiSecret);
+                    var baseUrl = config.Environment == 1
+                        ? "https://api2.nicehash.com"
+                        : "https://api-test.nicehash.com";
+                    nhClient = new NiceHashClient(baseUrl, config.OrganizationID, config.ApiID, config.ApiSecret);
                     nhService = new NiceHashService(nhClient);
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("✓ NiceHash configured");

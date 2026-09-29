@@ -15,6 +15,14 @@ namespace NHB3
     /// </summary>
     public class UnifiedArbitrageConsole
     {
+        /// <summary>
+        /// Initializes configured services and runs the interactive multi-algorithm monitoring menu until exit.
+        /// </summary>
+        /// <returns>A task that completes when the console session ends.</returns>
+        /// <remarks>
+        /// Requires NiceHash and Mining-Dutch clients; MRR is optional. Missing required clients
+        /// or fatal menu errors cause a keypress prompt before returning. Errors in console error handling can propagate.
+        /// </remarks>
         public static async Task RunAsync()
         {
             try
@@ -23,7 +31,8 @@ namespace NHB3
                 PrintBanner();
 
                 // Load configuration
-                var config = ConfigManager.LoadConfig();
+                var apiSettings = ConfigManager.Instance.LoadApiSettings();
+                var botConfig = ConfigManager.Instance.LoadBotConfig();
 
                 // Initialize services
                 Console.WriteLine("┌─────────────────────────────────────────────────────────┐");
@@ -32,7 +41,7 @@ namespace NHB3
                 Console.ResetColor();
                 Console.WriteLine("└─────────────────────────────────────────────────────────┘\n");
 
-                var (nhService, mdClient, mrrService) = await InitializeServicesAsync(config);
+                var (nhService, mdClient, mrrService) = await InitializeServicesAsync(apiSettings);
 
                 if (nhService == null || mdClient == null)
                 {
@@ -132,7 +141,17 @@ namespace NHB3
             }
         }
 
-        private static async Task<(NiceHashService, MiningDutchClient, MrrService)> InitializeServicesAsync(ConfigManager config)
+        /// <summary>
+        /// Initializes NiceHash, Mining-Dutch, and optional MRR services, reporting initialization failures to the console.
+        /// </summary>
+        /// <param name="apiSettings">
+        /// The NiceHash environment and API credentials, including optional MRR credentials. Environment 1
+        /// selects production; all other values select the test API. MRR requires both a key and a secret.
+        /// </param>
+        /// <returns>A task yielding the three services, with null entries for failed or unconfigured services.</returns>
+        /// <remarks>Client creation does not test connectivity or validate credentials with the services.</remarks>
+        /// <exception cref="NullReferenceException"><paramref name="apiSettings"/> is null.</exception>
+        private static async Task<(NiceHashService, MiningDutchClient, MrrService)> InitializeServicesAsync(ApiSettings apiSettings)
         {
             NiceHashService nhService = null;
             MiningDutchClient mdClient = null;
@@ -140,7 +159,10 @@ namespace NHB3
 
             try
             {
-                var nhClient = new NiceHashClient(config.OrganizationID, config.ApiID, config.ApiSecret);
+                var baseUrl = apiSettings.Environment == 1
+                    ? "https://api2.nicehash.com"
+                    : "https://api-test.nicehash.com";
+                var nhClient = new NiceHashClient(baseUrl, apiSettings.OrganizationID, apiSettings.ApiID, apiSettings.ApiSecret);
                 nhService = new NiceHashService(nhClient);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("✓ NiceHash configured");
@@ -167,11 +189,11 @@ namespace NHB3
                 Console.ResetColor();
             }
 
-            if (!string.IsNullOrEmpty(config.MrrApiKey) && !string.IsNullOrEmpty(config.MrrApiSecret))
+            if (!string.IsNullOrEmpty(apiSettings.MrrApiKey) && !string.IsNullOrEmpty(apiSettings.MrrApiSecret))
             {
                 try
                 {
-                    var mrrClient = new MrrClient(config.MrrApiKey, config.MrrApiSecret);
+                    var mrrClient = new MrrClient(apiSettings.MrrApiKey, apiSettings.MrrApiSecret);
                     mrrService = new MrrService(mrrClient);
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("✓ MRR configured");
