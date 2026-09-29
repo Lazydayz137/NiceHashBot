@@ -15,6 +15,10 @@ namespace NHB3
     /// </summary>
     public class EquihashConsole
     {
+        /// <summary>
+        /// Initializes configured services and runs the interactive Equihash monitoring menu until exit.
+        /// </summary>
+        /// <returns>A task that completes when the console session ends.</returns>
         public static async Task RunAsync()
         {
             try

@@ -15,6 +15,10 @@ namespace NHB3
     /// </summary>
     public class UnifiedArbitrageConsole
     {
+        /// <summary>
+        /// Initializes configured services and runs the interactive multi-algorithm monitoring menu until exit.
+        /// </summary>
+        /// <returns>A task that completes when the console session ends.</returns>
         public static async Task RunAsync()
         {
             try
@@ -133,6 +137,11 @@ namespace NHB3
             }
         }
 
+        /// <summary>
+        /// Initializes NiceHash, Mining-Dutch, and optional MRR services, reporting initialization failures to the console.
+        /// </summary>
+        /// <param name="apiSettings">The NiceHash environment and API credentials, including optional MRR credentials.</param>
+        /// <returns>A task yielding the three services, with null entries for failed or unconfigured services.</returns>
         private static async Task<(NiceHashService, MiningDutchClient, MrrService)> InitializeServicesAsync(ApiSettings apiSettings)
         {
             NiceHashService nhService = null;

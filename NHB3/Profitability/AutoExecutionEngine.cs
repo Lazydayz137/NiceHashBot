@@ -288,6 +288,12 @@ namespace NHB3.Profitability
             }
         }
 
+        /// <summary>
+        /// Checks expiration, the configured profit margin, and order size when the daily spend limit is enabled.
+        /// </summary>
+        /// <param name="opportunity">The arbitrage opportunity to validate.</param>
+        /// <param name="error">The first validation failure, or null when all checks pass.</param>
+        /// <returns>True when the opportunity passes the execution checks; otherwise, false.</returns>
         private bool ValidateExecution(ArbitrageOpportunity opportunity, out string error)
         {
             error = null;

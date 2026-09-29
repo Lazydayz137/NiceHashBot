@@ -308,6 +308,11 @@ namespace NHB3
             }
         }
 
+        /// <summary>
+        /// Colors opportunity rows according to their profit margin when the margin is a valid decimal.
+        /// </summary>
+        /// <param name="sender">The grid raising the formatting event.</param>
+        /// <param name="e">The formatting event identifying the row to update.</param>
         private void OnCellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;

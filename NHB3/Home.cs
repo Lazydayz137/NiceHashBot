@@ -153,21 +153,39 @@ namespace NHB3
             bf.ShowDialog();
         }
 
+        /// <summary>
+        /// Opens the arbitrage dashboard when its menu item is selected.
+        /// </summary>
+        /// <param name="sender">The menu item raising the event.</param>
+        /// <param name="e">The click event data.</param>
         private void arbitrageDashboardToolStripMenuItem_Click(object sender, EventArgs e)
         {
             LaunchArbitrageDashboard();
         }
 
+        /// <summary>
+        /// Launches the multi-algorithm monitor when its menu item is selected.
+        /// </summary>
+        /// <param name="sender">The menu item raising the event.</param>
+        /// <param name="e">The click event data.</param>
         private void multiAlgorithmMonitorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             LaunchMultiAlgorithmMonitor();
         }
 
+        /// <summary>
+        /// Launches the Equihash monitor when its menu item is selected.
+        /// </summary>
+        /// <param name="sender">The menu item raising the event.</param>
+        /// <param name="e">The click event data.</param>
         private void equihashMonitorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             LaunchEquihashMonitor();
         }
 
+        /// <summary>
+        /// Starts NHB3.exe in multi-algorithm console mode and displays launch confirmation or an error.
+        /// </summary>
         private void LaunchMultiAlgorithmMonitor()
         {
             try
@@ -207,6 +225,9 @@ namespace NHB3
             }
         }
 
+        /// <summary>
+        /// Starts NHB3.exe in Equihash console mode and displays launch confirmation or an error.
+        /// </summary>
         private void LaunchEquihashMonitor()
         {
             try
